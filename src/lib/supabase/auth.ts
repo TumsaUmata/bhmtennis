@@ -11,6 +11,7 @@ export async function signUp(
     password,
     options: {
       data: { name, skill_level: skillLevel },
+      emailRedirectTo: `${window.location.origin}/login`,
     },
   });
 
