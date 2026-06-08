@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from "react";
 import type { Match, SetScore, Standing } from "./types";
+import { advanceBracket } from "./bracket";
 import {
   sampleMatches,
   mensPlayers,
@@ -192,6 +193,7 @@ export function createMatchStore(): MatchStore {
           break;
         }
       }
+      locked.bracket = advanceBracket(locked.bracket);
     },
   };
 }

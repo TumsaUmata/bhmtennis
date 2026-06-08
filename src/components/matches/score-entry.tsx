@@ -16,6 +16,7 @@ interface ScoreEntryProps {
   player2Id: string;
   onSubmit: (sets: SetScore[], winnerId: string) => void;
   onSaveIncomplete?: (sets: SetScore[]) => void;
+  onWalkover?: (winnerId: string) => void;
   onCancel: () => void;
   initialSets?: SetScore[];
 }
@@ -27,6 +28,7 @@ export function ScoreEntry({
   player2Id,
   onSubmit,
   onSaveIncomplete,
+  onWalkover,
   onCancel,
   initialSets,
 }: ScoreEntryProps) {
@@ -262,6 +264,30 @@ export function ScoreEntry({
               Mark as incomplete (finish later)
             </span>
           </label>
+        )}
+
+        {onWalkover && (
+          <div className="border-t pt-3 space-y-2">
+            <p className="text-xs text-muted-foreground font-medium">Walkover (no score played)</p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs"
+                onClick={() => onWalkover(player1Id)}
+              >
+                {player1Name} wins
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs"
+                onClick={() => onWalkover(player2Id)}
+              >
+                {player2Name} wins
+              </Button>
+            </div>
+          </div>
         )}
 
         {error && (

@@ -143,6 +143,15 @@ export default function MensSinglesPage() {
     forceUpdate((n) => n + 1);
   }, [service, store, selectedFixture, resumingMatch, activeGroup, refresh]);
 
+  const handleWalkover = useCallback(async (winnerId: string) => {
+    if (!selectedFixture) return;
+    const loserId = winnerId === selectedFixture.p1 ? selectedFixture.p2 : selectedFixture.p1;
+    await service.awardWalkover("mens-singles", activeGroup, winnerId, loserId);
+    setSelectedFixture(null);
+    await refresh();
+    forceUpdate((n) => n + 1);
+  }, [service, selectedFixture, activeGroup, refresh]);
+
   const handleResumeMatch = useCallback((match: Match) => {
     setResumingMatch(match);
     setSelectedFixture(null);
@@ -164,10 +173,10 @@ export default function MensSinglesPage() {
 
   const handleBracketSubmit = useCallback(async (sets: SetScore[], winnerId: string) => {
     if (!bracketState) return;
-    store.updateBracketMatch("mens-singles", bracketState.id, sets, winnerId);
+    await service.updateBracketMatch("mens-singles", bracketState.id, sets, winnerId);
     setBracketState(null);
-    forceUpdate((n) => n + 1);
-  }, [store, bracketState]);
+    refresh();
+  }, [service, bracketState, refresh]);
 
   const scoreEntryActive = selectedFixture || resumingMatch;
   const scoreP1 = resumingMatch?.player1Id ?? selectedFixture?.p1 ?? "";
@@ -242,6 +251,7 @@ export default function MensSinglesPage() {
                     player1Name={playerNames.get(scoreP1) ?? ""} player2Name={playerNames.get(scoreP2) ?? ""}
                     onSubmit={handleSubmit} onSaveIncomplete={handleSaveIncomplete} onCancel={handleCancel}
                     initialSets={resumingMatch?.sets}
+                    onWalkover={currentUser.isAdmin && selectedFixture ? handleWalkover : undefined}
                   />
                 )}
 

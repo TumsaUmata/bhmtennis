@@ -117,15 +117,24 @@ export default function MixedDoublesPage() {
     forceUpdate((n) => n + 1);
   }, [service, store, selectedFixture, resumingMatch, refresh]);
 
+  const handleWalkover = useCallback(async (winnerId: string) => {
+    if (!selectedFixture) return;
+    const loserId = winnerId === selectedFixture.p1 ? selectedFixture.p2 : selectedFixture.p1;
+    await service.awardWalkover("mixed-doubles", "A", winnerId, loserId);
+    setSelectedFixture(null);
+    await refresh();
+    forceUpdate((n) => n + 1);
+  }, [service, selectedFixture, refresh]);
+
   const handleResumeMatch = useCallback((match: Match) => { setResumingMatch(match); setSelectedFixture(null); }, []);
   const handleCancel = useCallback(() => { setSelectedFixture(null); setResumingMatch(null); setBracketState(null); }, []);
   const handleBracketMatchClick = useCallback((match: BracketMatch) => { if (match.status !== "ready" || !isLocked) return; setBracketState(match); }, [isLocked]);
   const handleBracketSubmit = useCallback(async (sets: SetScore[], winnerId: string) => {
     if (!bracketState) return;
-    store.updateBracketMatch("mixed-doubles", bracketState.id, sets, winnerId);
+    await service.updateBracketMatch("mixed-doubles", bracketState.id, sets, winnerId);
     setBracketState(null);
-    forceUpdate((n) => n + 1);
-  }, [store, bracketState]);
+    refresh();
+  }, [service, bracketState, refresh]);
 
   const scoreEntryActive = selectedFixture || resumingMatch;
   const scoreP1 = resumingMatch?.player1Id ?? selectedFixture?.p1 ?? "";
@@ -174,7 +183,7 @@ export default function MixedDoublesPage() {
           </Card>
 
           {scoreEntryActive && (
-            <ScoreEntry player1Id={scoreP1} player2Id={scoreP2} player1Name={playerNames.get(scoreP1) ?? ""} player2Name={playerNames.get(scoreP2) ?? ""} onSubmit={handleSubmit} onSaveIncomplete={handleSaveIncomplete} onCancel={handleCancel} initialSets={resumingMatch?.sets} />
+            <ScoreEntry player1Id={scoreP1} player2Id={scoreP2} player1Name={playerNames.get(scoreP1) ?? ""} player2Name={playerNames.get(scoreP2) ?? ""} onSubmit={handleSubmit} onSaveIncomplete={handleSaveIncomplete} onCancel={handleCancel} initialSets={resumingMatch?.sets} onWalkover={currentUser.isAdmin && selectedFixture ? handleWalkover : undefined} />
           )}
 
           <Card>

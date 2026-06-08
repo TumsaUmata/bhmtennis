@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,6 +43,7 @@ export function PlayerManagement() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<string | null>(null);
 
   // Singles form
   const [sCategoryId, setSCategoryId] = useState("");
@@ -166,6 +168,20 @@ export function PlayerManagement() {
       setError(e.message ?? "Failed to assign team");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleRemoveFromGroup(playerId: string, categoryId: string) {
+    setRemoving(playerId);
+    try {
+      await supabase
+        .from("group_assignments")
+        .delete()
+        .eq("player_id", playerId)
+        .eq("category_id", categoryId);
+      await load();
+    } finally {
+      setRemoving(null);
     }
   }
 
@@ -358,6 +374,18 @@ export function PlayerManagement() {
                     )}
                     {p.groupLabel && (
                       <Badge variant="outline" className="text-[10px]">Group {p.groupLabel}</Badge>
+                    )}
+                    {p.categoryId && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-destructive shrink-0"
+                        disabled={removing === p.id}
+                        onClick={() => handleRemoveFromGroup(p.id, p.categoryId!)}
+                        title="Remove from group"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     )}
                   </div>
                 </div>

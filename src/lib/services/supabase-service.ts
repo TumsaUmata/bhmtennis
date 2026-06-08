@@ -1,6 +1,7 @@
 import type { TournamentService, LockedBracketData } from "@/lib/services/types";
 import type { Match, SetScore, Standing, CategorySummary, Player, DoublesTeam } from "@/lib/types";
 import type { Bracket } from "@/lib/bracket";
+import { advanceBracket } from "@/lib/bracket";
 import { supabase } from "@/lib/supabase/client";
 
 function computeStandings(
@@ -66,7 +67,7 @@ export function createSupabaseService(): TournamentService {
     async getTournament() {
       const { data, error } = await supabase.from("tournaments").select("*").order("start_date", { ascending: false }).limit(1).maybeSingle();
       if (error) throw error;
-      if (!data) throw new Error("No active tournament found");
+      if (!data) throw new Error("No active tournament found — run seed.sql in Supabase SQL Editor.");
       return {
         id: data.id,
         name: data.name,
@@ -464,9 +465,10 @@ export function createSupabaseService(): TournamentService {
           break;
         }
       }
+      const advanced = advanceBracket(locked.bracket);
       await supabase
         .from("locked_brackets")
-        .update({ bracket_data: locked.bracket })
+        .update({ bracket_data: advanced })
         .eq("category_id", categoryId);
     },
 
