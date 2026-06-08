@@ -64,9 +64,9 @@ function mapMatch(row: Record<string, unknown>): Match {
 export function createSupabaseService(): TournamentService {
   return {
     async getTournament() {
-      const { data, error } = await supabase.from("tournaments").select("*").eq("status", "group_stage").maybeSingle();
+      const { data, error } = await supabase.from("tournaments").select("*").order("start_date", { ascending: false }).limit(1).maybeSingle();
       if (error) throw error;
-      if (!data) throw new Error("No active tournament found — run seed.sql in Supabase SQL Editor.");
+      if (!data) throw new Error("No active tournament found");
       return {
         id: data.id,
         name: data.name,
