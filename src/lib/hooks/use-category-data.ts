@@ -40,15 +40,12 @@ export function useCategoryData(slug: string, groups: string[]): CategoryData {
         setCategory(cat ?? null);
         setMatches(allMatches);
 
-        const newStandings: Record<string, Standing[]> = {};
-        for (const group of groups) {
-          newStandings[group] = await service.getStandings(
-            slug === "mens-singles" ? "mens-singles" :
-            slug === "womens-singles" ? "womens-singles" : "mixed-doubles",
-            group
-          );
-        }
-        if (!cancelled) setStandings(newStandings);
+        const categoryId = slug === "mens-singles" ? "mens-singles" :
+          slug === "womens-singles" ? "womens-singles" : "mixed-doubles";
+        const standingsEntries = await Promise.all(
+          groups.map(async (group) => [group, await service.getStandings(categoryId, group)] as const)
+        );
+        if (!cancelled) setStandings(Object.fromEntries(standingsEntries));
       } finally {
         if (!cancelled) setLoading(false);
       }

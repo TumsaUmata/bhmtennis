@@ -20,16 +20,18 @@ export function RegistrationBanner({ category }: RegistrationBannerProps) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
+  const currentUserId = isGuest(currentUser) ? null : currentUser.id;
+
   const load = useCallback(async () => {
-    if (isGuest(currentUser)) {
+    if (!currentUserId) {
       setLoading(false);
       return;
     }
-    const regs = await getService().getMyRegistrations(currentUser.id);
+    const regs = await getService().getMyRegistrations(currentUserId);
     const mine = regs.find((r) => r.categoryId === category.id);
     setStatus(mine?.status ?? null);
     setLoading(false);
-  }, [currentUser, category.id]);
+  }, [currentUserId, category.id]);
 
   useEffect(() => {
     load();

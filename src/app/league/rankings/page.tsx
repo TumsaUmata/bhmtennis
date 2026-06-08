@@ -29,6 +29,8 @@ export default function LeagueRankingsPage() {
   const [challengeOpponent, setChallengeOpponent] = useState<{ id: string; name: string } | null>(null);
   const [logMatchOpen, setLogMatchOpen] = useState(false);
 
+  const currentUserId = isGuest(currentUser) ? null : currentUser.id;
+
   const load = useCallback(async () => {
     setLoaded(false);
     try {
@@ -41,9 +43,9 @@ export default function LeagueRankingsPage() {
       setActiveSeason(active);
       setRatings(ratingsData);
 
-      if (active && !isGuest(currentUser)) {
+      if (active && currentUserId) {
         const enrollments = await getService().getSeasonEnrollments(active.id);
-        const mine = enrollments.find((e) => e.playerId === currentUser.id);
+        const mine = enrollments.find((e) => e.playerId === currentUserId);
         setMyEnrollment(mine ? { optedOut: mine.optedOut } : null);
       } else {
         setMyEnrollment(null);
@@ -51,7 +53,7 @@ export default function LeagueRankingsPage() {
     } finally {
       setLoaded(true);
     }
-  }, [currentUser]);
+  }, [currentUserId]);
 
   useEffect(() => { load(); }, [load]);
 

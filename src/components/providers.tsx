@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { MatchStoreContext, createMatchStore } from "@/lib/match-store";
-import { CurrentUserContext, GUEST_USER, type CurrentUser } from "@/lib/current-user";
+import { CurrentUserContext, GUEST_USER, isGuest, type CurrentUser } from "@/lib/current-user";
 import { supabase } from "@/lib/supabase/client";
 import { getCurrentUser } from "@/lib/supabase/auth";
 
@@ -12,20 +12,36 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function loadUser() {
-      const player = await getCurrentUser();
-      if (player) {
-        setCurrentUser({ id: player.id, name: player.name, isAdmin: player.is_admin ?? false });
+      try {
+        const player = await getCurrentUser();
+        if (player) {
+          setCurrentUser((prev) => {
+            if (!isGuest(prev) && prev.id === player.id && prev.name === player.name && prev.isAdmin === (player.is_admin ?? false)) return prev;
+            return { id: player.id, name: player.name, isAdmin: player.is_admin ?? false };
+          });
+        }
+      } catch {
+        await supabase.auth.signOut();
       }
     }
     loadUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_OUT") {
         setCurrentUser(GUEST_USER);
       } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
-        const player = await getCurrentUser();
-        if (player) {
-          setCurrentUser({ id: player.id, name: player.name, isAdmin: player.is_admin ?? false });
+        try {
+          const player = await getCurrentUser();
+          if (player) {
+            setCurrentUser((prev) => {
+              if (!isGuest(prev) && prev.id === player.id && prev.name === player.name && prev.isAdmin === (player.is_admin ?? false)) return prev;
+              return { id: player.id, name: player.name, isAdmin: player.is_admin ?? false };
+            });
+          } else {
+            setCurrentUser(GUEST_USER);
+          }
+        } catch {
+          await supabase.auth.signOut();
         }
       }
     });
