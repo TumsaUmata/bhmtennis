@@ -54,7 +54,7 @@ export default function Home() {
   if (!tournament) {
     return (
       <div className="flex items-center justify-center py-24 text-sm text-muted-foreground">
-        No tournament data found. Run seed.sql in Supabase.
+        No tournament data found. Coming soon ...
       </div>
     );
   }
